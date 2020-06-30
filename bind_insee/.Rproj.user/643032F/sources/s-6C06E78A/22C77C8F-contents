@@ -32,6 +32,7 @@ insee <- insee %>%
   select(insee_code=Code.INSEE,
          insee_city=Commune,
          insee_departement=Département,
+         insee_departement_num=Code.Département,
          insee_region=Région,
          geo_altitude=Altitude.Moyenne,
          geo_latlon=geo_point_2d,
@@ -45,11 +46,10 @@ insee <- insee %>%
 # to have a look at this this beauty
 head(insee)
 
-
 # 2. Your database -------------------------------------------
-# It should have some "insee" code already, otherwise, you can try
+# It's better to have some "insee" code, but if we dont, we can try
 # Levenshtein distance between your city column and
-# "insee_city" created in the tibble "insee" below
+# "insee_city" created in the tibble "insee" above
 
 your_file <- "Synth_ArchBot_Vitis_17juin20.xlsx"
 # if information is in another sheet than the first one, then change it below
@@ -58,6 +58,7 @@ local <- read.xlsx(your_file, sheetIndex = 1) %>% as_tibble()
 # now if you already have correct insee code, go to last section
 # if you don't we will have bind first the city names to the correct one
 # to retrieve them
+
 
 # CASE 1: You do NOT have insee codes ---------------------
 
@@ -73,6 +74,11 @@ local[[city_column]] <- local[[city_column]] %>%
   str_to_title %>%
   # trim spaces on both ends
   str_trim(side="both")
+
+# fix Laurent, add dep
+insee <- insee %>% mutate(insee_city=paste0(insee_departement_num, "_", insee_city)) %>% relocate(starts_with("insee"), everything())
+local <- local %>% mutate(com=paste0(str_remove(dep, " .*"), "_", com)) # rm anything after the space (including the space)
+# end fix Laurent -----
 
 # approximate string matching -----------------------------
 # we use Levenshtein distance
@@ -91,8 +97,8 @@ binding_df <- map_df(local[[city_column]],
                        d <- adist(.x, insee$insee_city)
                        tibble(actual_city = .x,
                               matched_d = min(d),
-                              matched_id = which.min(d),
-                              matched_city = insee$insee_city[matched_id]) %>%
+                              matched_id = which(d==min(d)),
+                              matched_city = insee$insee_city[matched_id] %>% paste(collapse=",")) %>%
                          # rearrange columns
                          select(ends_with("city"), everything())
                      })
@@ -105,6 +111,7 @@ binding_df <- map_df(local[[city_column]],
 binding_df %>% arrange(desc(matched_d)) %>% distinct() %>% View
 
 binding_df %>% arrange(desc(matched_d)) %>% distinct() %>% write.table("problems.csv", sep=";", row.names = FALSE)
+
 # once everything is fine, it becomes a piece of cake
 local2 <- bind_cols(local, insee[binding_df$matched_id, ])
 
