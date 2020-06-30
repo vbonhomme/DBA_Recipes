@@ -1,8 +1,12 @@
 #
-# What: This scripts binds a data.frame with some insee code
+# What: This scripts binds a data.frame with
+# city names (case 1) or insee code (case 2)
 # to the insee reference database. This helps ensures codes are right,
 # and if so, adds various administrative and geopgraphical informations
 #
+# Please read the comments!!!
+# Also change what needs to be changed, ie your path to your database
+# and the name of your coluùn containing insee code or city names
 # Author(s):
 #   - Vincent Bonhomme <bonhomme.vincent@gmail.com>
 # Date:      30/06/2020
@@ -78,6 +82,10 @@ local[[city_column]] <- local[[city_column]] %>%
 # yet this one works fine
 
 # this maps the closest city name to each of yours
+# this may be a bit long (due to adist)
+# on my machine it does ~ 700 lines / min
+# so in cas of problems below,
+# you'd better purge all of them, not one by one...
 binding_df <- map_df(local[[city_column]],
                      ~ {
                        d <- adist(.x, insee$insee_city)
@@ -93,8 +101,10 @@ binding_df <- map_df(local[[city_column]],
 # by correcting them in your spreadsheet
 # they likely are only in the first rows below
 # if we arrange them by decreasing distance
-binding_df %>% arrange(desc(matched_d)) %>% View
+# ideally you only have 0s (or 1 or a very small number)
+binding_df %>% arrange(desc(matched_d)) %>% distinct() %>% View
 
+binding_df %>% arrange(desc(matched_d)) %>% distinct() %>% write.table("problems.csv", sep=";", row.names = FALSE)
 # once everything is fine, it becomes a piece of cake
 local2 <- bind_cols(local, insee[binding_df$matched_id, ])
 
@@ -104,7 +114,7 @@ local2 %>% View
 # then rename it and save it eg:
 # my_df <- local2
 # save(my_df, file="my_clean_df.rda")
-# write.csv(my_df, sep=";", row.names = FALSE)
+# write.table(my_df, sep=";", row.names = FALSE)
 
 # CASE 2 : You have insee codes ---------------------------
 # This case is much easier,
@@ -128,48 +138,12 @@ local2 %>%
 # 1. rename it (preferred) with local <- rename(local, insee_code="blabla")
 # 2. pass the 'by'  argument in left_join with 'c("blabla"="insee_code") ; see ?left_join
 
+# once you're happy with it rename it and save it eg:
+# my_df <- local2
+# save(my_df, file="my_clean_df.rda")
+# write.table(my_df, sep=";", row.names = FALSE)
 
-
-
-
-
-
-
-
-min_match = min(d), )
-~ tibble(matched_distance = adist(.x, insee$insee_city)))
-~which.min(adist(.x, insee$insee_city)))
-
-# check a bit here
-local %>% mutate(city_matched=inse)
-
-
-
-
-
-local %>%
-  rowwise() %>%
-  mutate(city_matched=insee$insee_city[which.min(adist(city_column, insee$insee_city))]) %>%
-  pull(city_matched)
-
-adist(local[[city_column]][1],
-      insee$insee_city) -> d
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# farewell -----
+# In case of bugs, desperate or funny situations the hotline is there:
+# <bonhomme.vincent@gmail.com>
+# be nice, patient and bring chocolate/beers :~)

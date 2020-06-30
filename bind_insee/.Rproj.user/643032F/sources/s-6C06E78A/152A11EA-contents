@@ -1,0 +1,2 @@
+z <- adist("Saint-Rémy-Les-Pothées", insee$insee_city)
+insee$insee_city[z==min(z)]
