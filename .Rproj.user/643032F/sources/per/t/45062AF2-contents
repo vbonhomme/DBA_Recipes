@@ -1,0 +1,53 @@
+# ---------------------------------------------------------
+# What: This scripts binds a data.frame with some insee code
+# to the insee reference database. This helps ensures codes are right,
+# and if so, adds various administrative and geopgraphical informations
+#
+# Author(s):
+#   - Vincent Bonhomme <bonhomme.vincent@gmail.com>
+# Date:      30/06/2020
+# ---------------------------------------------------------
+
+# Dependencies --------------------------------------------
+library(tidyverse) # general data handling
+library(xlsx)      # to read straight from MS Office (berk)
+
+# Your database -------------------------------------------
+# It should have some "insee" code already, otherwise, you can try
+# Levenshtein distance between your city column and
+# "insee_city" created in the tibble "insee" below
+
+your_file <- ""
+
+
+
+
+# Insee database ------------------------------------------
+# available there (among others). This one is under Etalab license
+insee_url <- "https://public.opendatasoft.com/explore/dataset/correspondance-code-insee-code-postal/download/?format=csv&timezone=Europe/Berlin&lang=fr&use_labels_for_header=true&csv_separator=%3B"
+# download it locally
+download.file(insee_url, destfile = "insee.csv")
+# load it as a tibble
+insee <- read.csv("insee.csv", sep=";") %>% as_tibble()
+
+# drop some and rename columns
+# if you want more columns, select them !
+insee <- insee %>%
+  select(insee_code=Code.INSEE,
+         insee_city=Commune,
+         insee_departement=Département,
+         insee_region=Région,
+         geo_altitude=Altitude.Moyenne,
+         geo_latlon=geo_point_2d,
+         geo_shape=geo_shape) %>%
+  # better formatting of places names
+  mutate(insee_city=str_to_title(insee_city),
+         insee_departement=str_to_title(insee_departement),
+         insee_region=str_to_title(insee_region)) %>%
+  # separate latlon into lat and lon
+  separate(geo_latlon, into=c("lat", "lon"), sep=",", remove=TRUE)
+# have a look at this this beauty
+head(insee)
+
+
+

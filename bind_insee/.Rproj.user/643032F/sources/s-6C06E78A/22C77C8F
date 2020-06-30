@@ -1,0 +1,25 @@
+{
+    "id": "22C77C8F",
+    "path": "~/Research/DBA_Recipes/bind_insee/bind_insee.R",
+    "project_path": "bind_insee.R",
+    "type": "r_source",
+    "hash": "0",
+    "contents": "",
+    "dirty": false,
+    "created": 1593504281578.0,
+    "source_on_save": false,
+    "relative_order": 1,
+    "properties": {
+        "cursorPosition": "124,0",
+        "scrollLine": "112",
+        "docOutlineVisible": "1"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1593506992,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1593506992180,
+    "read_only": false,
+    "read_only_alternatives": []
+}
